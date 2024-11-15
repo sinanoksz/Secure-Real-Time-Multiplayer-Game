@@ -14,19 +14,8 @@
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
-    <header>
-      <h1>Secure Real Time Multiplayer Game</h1>
-    </header>
-    <hr style="margin: 25px" />
-    <div class="container">
-      <canvas 
-        ref="game"
-        id="game-window" 
-        width="640" 
-        height="480"
-      >
-      </canvas>
-    </div>
-  </body>
-  <script src="../public/game.mjs" type="module"></script>
+    <canvas id="gameCanvas" width="640" height="480"></canvas>
+    <div id="scoreboard"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="game.js"></script>
 </html>

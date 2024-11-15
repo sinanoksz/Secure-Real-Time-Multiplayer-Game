@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
 const cors = require('cors');
+const helmet = require('helmet');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
@@ -18,6 +19,20 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 //For FCC testing purposes and enables user to connect from outside the hosting platform
 app.use(cors({origin: '*'})); 
+
+// Security middleware
+app.use(helmet({
+  noCache: true,
+  hidePoweredBy: { setTo: 'PHP 7.4.3' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+    },
+  },
+  xssFilter: true
+}));
 
 // Index page (static HTML)
 app.route('/')
@@ -51,6 +66,34 @@ const server = app.listen(portNum, () => {
       }
     }, 1500);
   }
+});
+
+const io = socket(server);
+
+io.on('connection', (socket) => {
+  game.addPlayer(socket.id);
+
+  socket.emit('init', {
+    players: Array.from(game.players.values()),
+    collectibles: Array.from(game.collectibles)
+  });
+
+  socket.on('move', (data) => {
+    const player = game.players.get(socket.id);
+    if (player) {
+      player.x = data.x;
+      player.y = data.y;
+      io.emit('gameState', {
+        players: Array.from(game.players.values()),
+        collectibles: Array.from(game.collectibles)
+      });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    game.removePlayer(socket.id);
+    io.emit('playerDisconnect', socket.id);
+  });
 });
 
 module.exports = app; // For testing
