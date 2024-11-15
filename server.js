@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const expect = require('chai');
 const socket = require('socket.io');
 const cors = require('cors');
-const helmet = require('helmet');
+const helmet = require('helmet@3.21.3');
 
 const fccTestingRoutes = require('./routes/fcctesting.js');
 const runner = require('./test-runner.js');
@@ -20,27 +20,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 //For FCC testing purposes and enables user to connect from outside the hosting platform
 app.use(cors({origin: '*'})); 
 
-// Security middleware
-app.use(helmet({
-  noSniff: true,
-  xssFilter: true,
-  noCache: true,
-  hidePoweredBy: {
-    setTo: 'PHP 7.4.3'
-  },
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
-      imgSrc: ["'self'"],
-    }
-  },
-  hsts: {
-    maxAge: 31536000,
-    includeSubDomains: true,
-    preload: true
-  }
+// Basic security middleware with only the required configurations
+app.use(helmet());
+
+// Prevent MIME type sniffing
+app.use(helmet.noSniff());
+
+// Enable XSS filter
+app.use(helmet.xssFilter());
+
+// Disable caching
+app.use(helmet.noCache());
+
+// Hide real server and set fake PHP header
+app.use(helmet.hidePoweredBy({
+  setTo: 'PHP 7.4.3'
 }));
 
 // Additional security headers
