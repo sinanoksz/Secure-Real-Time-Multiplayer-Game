@@ -22,17 +22,35 @@ app.use(cors({origin: '*'}));
 
 // Security middleware
 app.use(helmet({
+  noSniff: true,
+  xssFilter: true,
   noCache: true,
-  hidePoweredBy: { setTo: 'PHP 7.4.3' },
+  hidePoweredBy: {
+    setTo: 'PHP 7.4.3'
+  },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
       styleSrc: ["'self'"],
-    },
+      imgSrc: ["'self'"],
+    }
   },
-  xssFilter: true
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
 }));
+
+// Additional security headers
+app.use((req, res, next) => {
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.header('Pragma', 'no-cache');
+  res.header('Expires', '0');
+  next();
+});
 
 // Index page (static HTML)
 app.route('/')
